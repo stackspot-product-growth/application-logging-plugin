@@ -1,0 +1,63 @@
+schema-version: v1
+kind: plugin
+metadata:
+  name: graphene-logging-plugin
+  display-name: Log
+  description: This plugin generates execution logs from the application and enables configuring the log output format and log level for each environment the application is running.
+  version: 0.0.8
+  picture: plugin.png
+spec:
+  type: app
+  compatibility:
+    - java
+    - Springboot
+    - Maven
+    - Gradle
+  about: docs/about.md
+  usage: docs/usage.md
+  implementation: docs/implementation.md
+  requirements: docs/requirements.md
+  repository: https://github.com/stack-spot/graphene-logging-plugin.git
+  release-notes: docs/release-notes-0.0.1.md
+  technologies: # Ref: https://docs.stackspot.com/docs/create-stacks/yaml-files/yaml/#technologies
+    - java
+    - Springboot
+    - Maven
+    - Gradle
+  inputs:
+    - label: Select the log level
+      type: text
+      name: log_level
+      default: info
+      items:
+        - trace
+        - debug
+        - info
+        - warn
+        - error
+  hooks:
+    - type: run-script
+      trigger: before-render
+      script: scripts/asking_for_required_information.py
+    - type: edit
+      trigger: after-render
+      path: build.gradle
+      changes:
+        - search:
+            string: "dependencies {"
+            insert-after:
+              snippet: snippets/logging-dependencies-gradle.txt
+            when:
+              not-exists-snippet: snippets/logging-dependencies-gradle.txt
+      condition:
+        variable: build_tool
+        operator: ==
+        value: Gradle
+    - type: run
+      trigger: before-render
+      commands:
+        - stk-alpha apply plugin graphene/utils-stack/merge-pom-plugin --source_pom_xml "{{component_path}}/snippets/logging-dependencies-maven.xml" -s
+      condition:
+        variable: build_tool
+        operator: ==
+        value: Maven

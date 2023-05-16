@@ -1,0 +1,3 @@
+- Logback functionality 
+- Enable different output log format according to the application environment
+- Allows to choose the log level during plugin execution   
